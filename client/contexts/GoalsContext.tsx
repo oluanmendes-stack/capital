@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { Goal, GoalWithStatus, GoalSummary, calculateGoalStatus } from '@shared/goal-types';
-import apiService from '../services/apiService';
+import supabaseService from '../services/supabaseService';
 import { useAuth } from './AuthContext';
 import type { CreateGoalRequest, UpdateGoalRequest } from '@shared/database-types';
 
@@ -122,7 +122,7 @@ export function GoalsProvider({ children }: { children: React.ReactNode }) {
     const load = async () => {
       try {
         if (isAuthenticated) {
-          const apiGoals = await apiService.getGoals();
+          const apiGoals = await supabaseService.getGoals();
           if (Array.isArray(apiGoals)) {
             const mapped: Goal[] = apiGoals.map((g: any) => ({
               id: g.id,
@@ -169,7 +169,14 @@ export function GoalsProvider({ children }: { children: React.ReactNode }) {
           target_date: goalData.deadline,
           description: goalData.description,
         } as any;
-        const created = await apiService.createGoal(payload as any);
+        const created = await supabaseService.createGoal({
+          name: goalData.name,
+          category: goalData.category,
+          target_amount: goalData.targetAmount,
+          current_amount: 0,
+          deadline: goalData.deadline,
+          description: goalData.description,
+        });
         const goal: Goal = {
           id: created.id,
           name: created.title || goalData.name,
@@ -207,7 +214,14 @@ export function GoalsProvider({ children }: { children: React.ReactNode }) {
           description: goal.description,
           status: undefined,
         } as any;
-        await apiService.updateGoal(payload as any);
+        await supabaseService.updateGoal(goal.id, {
+          name: goal.name,
+          category: goal.category,
+          target_amount: goal.targetAmount,
+          current_amount: goal.currentAmount,
+          deadline: goal.deadline,
+          description: goal.description,
+        });
       } catch (e) {
         console.warn('Falha ao atualizar objetivo na API, atualizando localmente:', e);
       }
@@ -222,7 +236,7 @@ export function GoalsProvider({ children }: { children: React.ReactNode }) {
   const deleteGoal = useCallback((id: string) => {
     (async () => {
       try {
-        await apiService.deleteGoal(id);
+        await supabaseService.deleteGoal(id);
       } catch (e) {
         console.warn('Falha ao deletar objetivo na API, removendo localmente:', e);
       }
