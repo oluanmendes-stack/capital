@@ -325,7 +325,8 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'LOAD_EXPENSES', payload: savedExpenses });
       }
     } catch (error) {
-      console.error('Erro ao carregar dados de orçamento:', error);
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Erro ao carregar dados de orçamento:', errorMessage);
       try {
         const categoriesStr = localStorage.getItem(CATEGORIES_STORAGE_KEY);
         const expensesStr = localStorage.getItem(EXPENSES_STORAGE_KEY);
