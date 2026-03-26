@@ -9,7 +9,7 @@ import {
   DEFAULT_BUDGET_CATEGORIES
 } from '@shared/budget-types';
 import { DBBudgetDivision, DBBudgetCategory, DBBudgetAllocation } from '@shared/database-types';
-import apiService from '../services/apiService';
+import supabaseService from '../services/supabaseService';
 import { useAuth } from './AuthContext';
 
 interface BudgetState {
@@ -259,13 +259,13 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const loadBudgetData = async () => {
     try {
       const [divisions, budgetCategories] = await Promise.all([
-        apiService.getBudgetDivisions(),
-        apiService.getBudgetCategories()
+        supabaseService.getBudgetDivisions(),
+        supabaseService.getBudgetCategories()
       ]);
 
       let divisionId = divisions && divisions.length > 0 ? divisions[0].id : null;
       if (!divisionId) {
-        const created = await apiService.createBudgetDivision({
+        const created = await supabaseService.createBudgetDivision({
           name: 'Pessoal',
           percentage: 100,
           color: '#3B82F6',
@@ -297,14 +297,14 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'LOAD_CATEGORIES', payload: mapped });
         saveCategoriesData(mapped);
       } else if (savedCategories && Array.isArray(savedCategories) && savedCategories.length > 0 && divisionId) {
-        await Promise.all(savedCategories.map(cat => apiService.createBudgetCategory({
+        await Promise.all(savedCategories.map(cat => supabaseService.createBudgetCategory({
           division_id: divisionId!,
           name: cat.name,
           allocated_amount: cat.monthlyLimit,
           icon: cat.icon,
           color: cat.color
         } as any)));
-        const after = await apiService.getBudgetCategories();
+        const after = await supabaseService.getBudgetCategories();
         const mapped = after.map((c: any): BudgetCategory => ({
           id: c.id,
           name: c.name,
@@ -353,7 +353,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       try {
         let divisionId = defaultDivisionId;
         if (!divisionId) {
-          const created = await apiService.createBudgetDivision({
+          const created = await supabaseService.createBudgetDivision({
             name: 'Pessoal',
             percentage: 100,
             color: '#3B82F6',
@@ -363,7 +363,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
           divisionId = created.id;
           setDefaultDivisionId(divisionId);
         }
-        const createdCat = await apiService.createBudgetCategory({
+        const createdCat = await supabaseService.createBudgetCategory({
           division_id: divisionId!,
           name: categoryData.name,
           allocated_amount: categoryData.monthlyLimit,
@@ -382,7 +382,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
         };
         dispatch({ type: 'ADD_CATEGORY', payload: category });
       } catch (e) {
-        console.warn('Falha ao criar categoria na API, salvando localmente:', e);
+        console.warn('Falha ao criar categoria na Supabase, salvando localmente:', e);
         const local: BudgetCategory = {
           ...categoryData,
           id: crypto.randomUUID(),
@@ -397,15 +397,14 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const updateCategory = useCallback((category: BudgetCategory) => {
     (async () => {
       try {
-        await apiService.updateBudgetCategory({
-          id: category.id,
+        await supabaseService.updateBudgetCategory(category.id, {
           name: category.name,
           allocated_amount: category.monthlyLimit,
           icon: category.icon,
           color: category.color
         } as any);
       } catch (e) {
-        console.warn('Falha ao atualizar categoria na API, atualizando localmente:', e);
+        console.warn('Falha ao atualizar categoria na Supabase, atualizando localmente:', e);
       }
       const updatedCategory = {
         ...category,
@@ -418,9 +417,9 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const deleteCategory = useCallback((id: string) => {
     (async () => {
       try {
-        await apiService.deleteBudgetCategory(id);
+        await supabaseService.deleteBudgetCategory(id);
       } catch (e) {
-        console.warn('Falha ao deletar categoria na API, removendo localmente:', e);
+        console.warn('Falha ao deletar categoria na Supabase, removendo localmente:', e);
       }
       dispatch({ type: 'DELETE_CATEGORY', payload: id });
     })();

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserCreate, UserLogin } from '@shared/database-types';
-import apiService from '../services/apiService';
+import supabaseService from '../services/supabaseService';
 
 interface AuthState {
   user: User | null;
@@ -44,13 +44,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Verificar autenticação inicial
   useEffect(() => {
     const checkAuth = async () => {
-      if (!apiService.isAuthenticated()) {
-        setState(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
-
       try {
-        const user = await apiService.verifyToken();
+        const user = await supabaseService.getCurrentUser();
 
         if (user) {
           setState({
@@ -88,11 +83,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await apiService.login(credentials);
-      
-      if (response.success && response.user) {
+      const { user, token } = await supabaseService.login(credentials);
+
+      if (user && token) {
         setState({
-          user: response.user,
+          user,
           isLoading: false,
           isAuthenticated: true,
           isDemoMode: false,
@@ -103,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setState(prev => ({
           ...prev,
           isLoading: false,
-          error: response.message || 'Erro no login'
+          error: 'Erro no login'
         }));
         return false;
       }
@@ -122,11 +117,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await apiService.register(userData);
-      
-      if (response.success && response.user) {
+      const { user, token } = await supabaseService.register(userData);
+
+      if (user && token) {
         setState({
-          user: response.user,
+          user,
           isLoading: false,
           isAuthenticated: true,
           isDemoMode: false,
@@ -137,7 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setState(prev => ({
           ...prev,
           isLoading: false,
-          error: response.message || 'Erro no registro'
+          error: 'Erro no registro'
         }));
         return false;
       }
@@ -153,7 +148,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    apiService.logout();
+    (async () => {
+      await supabaseService.logout();
+    })();
     setState({
       user: null,
       isLoading: false,
