@@ -8,7 +8,7 @@ import {
   TransactionType
 } from '@shared/financial-types';
 import { DBTransaction, DBCategory } from '@shared/database-types';
-import apiService from '../services/apiService';
+import supabaseService from '../services/supabaseService';
 import { useAuth } from './AuthContext';
 
 interface FinancialState {
@@ -301,7 +301,7 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
         dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
         saveDemoData();
       } else {
-        const dbTransaction = await apiService.createTransaction({
+        const dbTransaction = await supabaseService.createTransaction({
           type: transactionData.type,
           category_id: transactionData.category,
           description: transactionData.description,
@@ -356,8 +356,7 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
         dispatch({ type: 'UPDATE_TRANSACTION', payload: updatedTransaction });
         saveDemoData();
       } else {
-        await apiService.updateTransaction({
-          id: transaction.id,
+        await supabaseService.updateTransaction(transaction.id, {
           type: transaction.type,
           category_id: transaction.category,
           description: transaction.description,
@@ -391,7 +390,7 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
         dispatch({ type: 'DELETE_TRANSACTION', payload: id });
         saveDemoData();
       } else {
-        await apiService.deleteTransaction(id);
+        await supabaseService.deleteTransaction(id);
         dispatch({ type: 'DELETE_TRANSACTION', payload: id });
       }
       dispatch({ type: 'SET_ERROR', payload: null });
@@ -422,7 +421,7 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
         dispatch({ type: 'ADD_CATEGORY', payload: category });
         saveDemoData();
       } else {
-        const dbCategory = await apiService.createCategory({
+        const dbCategory = await supabaseService.createCategory({
           name: categoryData.name,
           icon: categoryData.icon,
           color: categoryData.color,
@@ -474,7 +473,7 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
         dispatch({ type: 'DELETE_CATEGORY', payload: id });
         saveDemoData();
       } else {
-        await apiService.deleteCategory(id);
+        await supabaseService.deleteCategory(id);
         dispatch({ type: 'DELETE_CATEGORY', payload: id });
       }
       dispatch({ type: 'SET_ERROR', payload: null });
@@ -544,8 +543,8 @@ export function FinancialProvider({ children }: FinancialProviderProps) {
 
       // Carregar transações e categorias da API
       const [dbTransactions, dbCategories] = await Promise.all([
-        apiService.getTransactions(),
-        apiService.getCategories()
+        supabaseService.getTransactions(),
+        supabaseService.getCategories()
       ]);
 
       // Converter transações do formato DB para o formato local

@@ -28,6 +28,7 @@
     "cf:logs": "npx wrangler tail"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.100.1",
     "dotenv": "^17.2.0",
     "express": "^4.18.2",
     "pdfjs-dist": "^5.3.93",
