@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect } 
 import { Investment, InvestmentType, InvestmentSummary, QuoteResponse, GoalAllocation } from '@shared/investment-types';
 import { quoteService } from '../services/quoteService';
 import { setObjectCookie, getObjectCookie } from '../utils/cookies';
-import apiService from '../services/apiService';
+import supabaseService from '../services/supabaseService';
 import { useAuth } from './AuthContext';
 import type { CreateInvestmentRequest, UpdateInvestmentRequest } from '@shared/database-types';
 
@@ -249,7 +249,7 @@ export function InvestmentProvider({ children }: { children: React.ReactNode }) 
     const load = async () => {
       try {
         if (isAuthenticated) {
-          const apiItems = await apiService.getInvestments();
+          const apiItems = await supabaseService.getInvestments();
           if (Array.isArray(apiItems)) {
             const mapped: Investment[] = apiItems.map((it: any) => ({
               id: it.id,
@@ -309,7 +309,13 @@ export function InvestmentProvider({ children }: { children: React.ReactNode }) 
           purchase_price: investmentData.purchasePrice,
           quantity: investmentData.quantity,
         };
-        const created = await apiService.createInvestment(payload);
+        const created = await supabaseService.createInvestment({
+          name: investmentData.name,
+          type: investmentData.type,
+          purchase_date: investmentData.purchaseDate,
+          purchase_price: investmentData.purchasePrice,
+          quantity: investmentData.quantity,
+        });
         const investment: Investment = {
           id: created.id,
           type: created.type as InvestmentType,
@@ -348,7 +354,14 @@ export function InvestmentProvider({ children }: { children: React.ReactNode }) 
           quantity: investment.quantity,
           current_price: investment.currentPrice,
         } as any;
-        await apiService.updateInvestment(payload as any);
+        await supabaseService.updateInvestment(investment.id, {
+          name: investment.name,
+          type: investment.type,
+          purchase_date: investment.purchaseDate,
+          purchase_price: investment.purchasePrice,
+          quantity: investment.quantity,
+          current_price: investment.currentPrice,
+        });
       } catch (e) {
         console.warn('Falha ao atualizar investimento na API, atualizando localmente:', e);
       }
@@ -363,7 +376,7 @@ export function InvestmentProvider({ children }: { children: React.ReactNode }) 
   const deleteInvestment = useCallback((id: string) => {
     (async () => {
       try {
-        await apiService.deleteInvestment(id);
+        await supabaseService.deleteInvestment(id);
       } catch (e) {
         console.warn('Falha ao deletar investimento na API, removendo localmente:', e);
       }

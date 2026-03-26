@@ -356,6 +356,94 @@ class SupabaseService {
     if (error) throw error;
     return true;
   }
+
+  // ========== OBJETIVOS (GOALS) ==========
+  async getGoals(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('goals')
+      .select('*')
+      .order('deadline');
+
+    if (error) throw error;
+    return (data as any[]) || [];
+  }
+
+  async createGoal(goal: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('goals')
+      .insert([goal])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateGoal(id: string, updates: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('goals')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteGoal(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('goals')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+
+  // ========== INVESTIMENTOS ==========
+  async getInvestments(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('investments')
+      .select('*')
+      .order('created_at');
+
+    if (error) throw error;
+    return (data as any[]) || [];
+  }
+
+  async createInvestment(investment: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('investments')
+      .insert([investment])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateInvestment(id: string, updates: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('investments')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteInvestment(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('investments')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
 }
 
 export const supabaseService = new SupabaseService();
