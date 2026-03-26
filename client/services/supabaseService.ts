@@ -111,22 +111,27 @@ class SupabaseService {
 
   // ========== CATEGORIAS ==========
   async getCategories(): Promise<DBCategory[]> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('type, name');
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('type, name');
 
-    if (error) throw error;
+      if (error) throw error;
 
-    let categories = (data as DBCategory[]) || [];
+      let categories = (data as DBCategory[]) || [];
 
-    // Auto-seed default categories if empty
-    if (categories.length === 0) {
-      await this.createDefaultCategories();
-      return this.getCategories();
+      // Auto-seed default categories if empty
+      if (categories.length === 0) {
+        await this.createDefaultCategories();
+        return this.getCategories();
+      }
+
+      return categories;
+    } catch (error) {
+      console.warn('Erro ao buscar categorias do Supabase:', error);
+      return [];
     }
-
-    return categories;
   }
 
   private async createDefaultCategories(): Promise<void> {
@@ -150,9 +155,13 @@ class SupabaseService {
 
     try {
       for (const category of defaultCategories) {
-        const { error } = await supabase.from('categories').insert([category]);
-        if (error) {
-          console.warn('Error creating default category:', category.name, error);
+        try {
+          const { error } = await supabase.from('categories').insert([category]);
+          if (error) {
+            console.warn('Error creating default category:', category.name, error);
+          }
+        } catch (e) {
+          console.warn('Error creating category:', category.name, e);
         }
       }
     } catch (error) {
@@ -359,90 +368,130 @@ class SupabaseService {
 
   // ========== OBJETIVOS (GOALS) ==========
   async getGoals(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*')
-      .order('deadline');
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .order('deadline');
 
-    if (error) throw error;
-    return (data as any[]) || [];
+      if (error) throw error;
+      return (data as any[]) || [];
+    } catch (error) {
+      console.warn('Erro ao buscar objetivos do Supabase:', error);
+      return [];
+    }
   }
 
   async createGoal(goal: any): Promise<any> {
-    const { data, error } = await supabase
-      .from('goals')
-      .insert([goal])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .insert([goal])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.warn('Erro ao criar objetivo:', error);
+      throw error;
+    }
   }
 
   async updateGoal(id: string, updates: any): Promise<any> {
-    const { data, error } = await supabase
-      .from('goals')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.warn('Erro ao atualizar objetivo:', error);
+      throw error;
+    }
   }
 
   async deleteGoal(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('goals')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
-    return true;
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.warn('Erro ao deletar objetivo:', error);
+      throw error;
+    }
   }
 
   // ========== INVESTIMENTOS ==========
   async getInvestments(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from('investments')
-      .select('*')
-      .order('created_at');
+    try {
+      const { data, error } = await supabase
+        .from('investments')
+        .select('*')
+        .order('created_at');
 
-    if (error) throw error;
-    return (data as any[]) || [];
+      if (error) throw error;
+      return (data as any[]) || [];
+    } catch (error) {
+      console.warn('Erro ao buscar investimentos do Supabase:', error);
+      return [];
+    }
   }
 
   async createInvestment(investment: any): Promise<any> {
-    const { data, error } = await supabase
-      .from('investments')
-      .insert([investment])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('investments')
+        .insert([investment])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.warn('Erro ao criar investimento:', error);
+      throw error;
+    }
   }
 
   async updateInvestment(id: string, updates: any): Promise<any> {
-    const { data, error } = await supabase
-      .from('investments')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('investments')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.warn('Erro ao atualizar investimento:', error);
+      throw error;
+    }
   }
 
   async deleteInvestment(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('investments')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
-    return true;
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.warn('Erro ao deletar investimento:', error);
+      throw error;
+    }
   }
 }
 
